@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "start-game": "./task1.js",
+    "get-statistics": "./task2.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/hanSoloKhv/utils/issues"
   },
-  "homepage": "https://github.com/hanSoloKhv/utils#readme"
+  "homepage": "https://github.com/hanSoloKhv/utils#readme",
+  "dependencies": {
+    "yargs": "^17.7.2"
+  }
 }
