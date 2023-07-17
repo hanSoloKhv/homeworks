@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "get-weather": "./index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/hanSoloKhv/utils/issues"
   },
-  "homepage": "https://github.com/hanSoloKhv/utils#readme"
+  "homepage": "https://github.com/hanSoloKhv/utils#readme",
+  "dependencies": {
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1"
+  }
 }
