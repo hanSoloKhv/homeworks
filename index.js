@@ -1,14 +1,12 @@
 const express = require("express");
 const app = express();
-const userRouter = require("./routes/user");
+app.set("view engine", "ejs");
 const booksRouter = require("./routes/books");
 const errorNotFound = require("./middleware/404");
 
-app.use(express.json());
+app.use(express.urlencoded());
 
-app.use("/api/user", userRouter);
-
-app.use("/api/books", booksRouter);
+app.use("/books", booksRouter);
 
 app.use(errorNotFound);
 

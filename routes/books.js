@@ -5,48 +5,20 @@ const { books: allBooks } = require("../store");
 const Book = require("../models/book");
 
 router.get("/", (req, res) => {
-  res.json(allBooks);
+  res.render("books/index", {
+    title: "Книги",
+    books: allBooks,
+  });
 });
 
-router.get("/:id", (req, res) => {
-  const { id } = req.params;
-  if (id) {
-    const bookIdx = allBooks.findIndex((book) => book.id === id);
-    if (bookIdx >= 0) {
-      res.json(allBooks[bookIdx]);
-    } else {
-      res.status(404);
-      res.json("Book not found");
-    }
-  } else {
-    res.status(404);
-    res.json("Book not found");
-  }
+router.get("/create", (req, res) => {
+  res.render("books/create", {
+    title: "Book | create",
+    book: {},
+  });
 });
 
-router.get("/:id/download", (req, res) => {
-  const { id } = req.params;
-  if (id) {
-    const bookIdx = allBooks.findIndex((book) => book.id === id);
-    if (bookIdx >= 0) {
-      if (allBooks[bookIdx].fileBook) {
-        const file = `${allBooks[bookIdx].fileBook}`;
-        res.download(file);
-      } else {
-        res.status(404);
-        res.json("fileBook not found");
-      }
-    } else {
-      res.status(404);
-      res.json("Book not found");
-    }
-  } else {
-    res.status(404);
-    res.json("Book not found");
-  }
-});
-
-router.post("/", fileMulter.single("fileBook"), (req, res) => {
+router.post("/create", fileMulter.single("fileBook"), (req, res) => {
   let fileBook = null;
   if (req.file) {
     fileBook = req.file.path;
@@ -56,10 +28,56 @@ router.post("/", fileMulter.single("fileBook"), (req, res) => {
     fileBook,
   });
   allBooks.push(book);
-  res.json(book);
+  res.redirect("/books");
 });
 
-router.put("/:id", fileMulter.single("fileBook"), (req, res) => {
+router.get("/:id", (req, res) => {
+  const { id } = req.params;
+  if (id) {
+    const bookIdx = allBooks.findIndex((book) => book.id === id);
+    if (bookIdx >= 0) {
+      res.render("books/view", {
+        title: allBooks[bookIdx].title,
+        book: allBooks[bookIdx],
+      });
+    } else {
+      res.status(404);
+      res.render("errors/404", {
+        title: "Book not found",
+      });
+    }
+  } else {
+    res.status(404);
+    res.render("errors/404", {
+      title: "Book not found",
+    });
+  }
+});
+
+router.get("/update/:id", (req, res) => {
+  const { id } = req.params;
+  if (id) {
+    const bookIdx = allBooks.findIndex((book) => book.id === id);
+    if (bookIdx >= 0) {
+      res.render("books/update", {
+        title: "Book | view",
+        book: allBooks[bookIdx],
+      });
+    } else {
+      res.status(404);
+      res.render("errors/404", {
+        title: "Book not found",
+      });
+    }
+  } else {
+    res.status(404);
+    res.render("errors/404", {
+      title: "Book not found",
+    });
+  }
+});
+
+router.post("/update/:id", fileMulter.single("fileBook"), (req, res) => {
   const { id } = req.params;
   if (id) {
     const bookIdx = allBooks.findIndex((book) => book.id === id);
@@ -73,32 +91,40 @@ router.put("/:id", fileMulter.single("fileBook"), (req, res) => {
         allBooks[bookIdx].fileBook = req.file.path;
       }
 
-      res.json(allBooks[bookIdx]);
+      res.redirect(`/books/${id}`);
     } else {
       res.status(404);
-      res.json("Book not found");
+      res.render("errors/404", {
+        title: "Book not found",
+      });
     }
   } else {
     res.status(404);
-    res.json("Book not found");
+    res.render("errors/404", {
+      title: "Book not found",
+    });
   }
 });
 
-router.delete("/:id", (req, res) => {
+router.post("/delete/:id", (req, res) => {
   const { id } = req.params;
   if (id) {
     const bookIdx = allBooks.findIndex((book) => book.id === id);
     if (bookIdx >= 0) {
       allBooks.splice(bookIdx, 1);
 
-      res.json("ok");
+      res.redirect("/books");
     } else {
       res.status(404);
-      res.json("Book not found");
+      res.render("errors/404", {
+        title: "Book not found",
+      });
     }
   } else {
     res.status(404);
-    res.json("Book not found");
+    res.render("errors/404", {
+      title: "Book not found",
+    });
   }
 });
 
