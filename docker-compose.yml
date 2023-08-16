@@ -1,0 +1,23 @@
+services:
+  storage:
+    image: redis
+    volumes:
+      - ./data:/data
+  books:
+    image: hansolokhv/books:1.0.0
+    ports:
+      - 80:3002
+    environment:
+      - PORT=3002
+      - REDIS_URL=redis://storage
+    depends_on: 
+      - storage
+  counter:
+    image: hansolokhv/counter:1.0.0
+    ports:
+      - 80:3003
+    environment:
+      - PORT=3003
+      - REDIS_URL=redis://storage
+    depends_on: 
+      - storage

@@ -1,19 +1,32 @@
 const express = require("express");
+const redis = require("redis");
 const router = express.Router();
 const fileMulter = require("../middleware/file");
 const { books: allBooks } = require("../store");
 const Book = require("../models/book");
+const REDIS_URL = process.env.REDIS_URL || "localhost";
+
+const client = redis.createClient({ url: REDIS_URL });
+
+(async () => {
+  await client.connect();
+})();
 
 router.get("/", (req, res) => {
   res.json(allBooks);
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
   if (id) {
     const bookIdx = allBooks.findIndex((book) => book.id === id);
     if (bookIdx >= 0) {
-      res.json(allBooks[bookIdx]);
+      const counter = await client.incr(id);
+
+      res.json({
+        ...allBooks[bookIdx],
+        counter: counter,
+      });
     } else {
       res.status(404);
       res.json("Book not found");
