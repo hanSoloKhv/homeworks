@@ -4,16 +4,14 @@ services:
     volumes:
       - ./data:/data
   books:
-    image: hansolokhv/books:1.0.0
+    build: ./
     ports:
       - 80:3002
     environment:
       - PORT=3002
-      - REDIS_URL=redis://storage
-    depends_on: 
-      - storage
+      - COUNTER_URL=http://counter:3003
   counter:
-    image: hansolokhv/counter:1.0.0
+    image: hansolokhv/counter:0.0.1
     ports:
       - 81:3003
     environment:

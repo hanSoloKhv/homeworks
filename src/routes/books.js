@@ -1,18 +1,13 @@
 const express = require("express");
-const redis = require("redis");
 const router = express.Router();
 const fileMulter = require("../middleware/file");
 const { books: allBooks } = require("../store");
 const Book = require("../models/book");
-const REDIS_URL = process.env.REDIS_URL || "localhost";
-
-const client = redis.createClient({ url: REDIS_URL });
-
-(async () => {
-  await client.connect();
-})();
+const COUNTER_URL = process.env.COUNTER_URL || "http://localhost:81";
+const axios = require("axios");
 
 router.get("/", (req, res) => {
+  console.log("COUNTER_URL", process.env.COUNTER_URL);
   res.json(allBooks);
 });
 
@@ -21,11 +16,11 @@ router.get("/:id", async (req, res) => {
   if (id) {
     const bookIdx = allBooks.findIndex((book) => book.id === id);
     if (bookIdx >= 0) {
-      const counter = await client.incr(id);
+      const { data } = await axios.post(`${COUNTER_URL}/counter/${id}/incr`);
 
       res.json({
         ...allBooks[bookIdx],
-        counter: counter,
+        counterValue: data.value,
       });
     } else {
       res.status(404);
