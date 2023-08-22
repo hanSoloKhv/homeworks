@@ -1,112 +1,64 @@
 const express = require("express");
 const router = express.Router();
-const fileMulter = require("../middleware/file");
-const { books: allBooks } = require("../store");
-const Book = require("../models/book");
-const COUNTER_URL = process.env.COUNTER_URL || "http://localhost:81";
-const axios = require("axios");
+const Books = require("../models/book");
 
-router.get("/", (req, res) => {
-  console.log("COUNTER_URL", process.env.COUNTER_URL);
-  res.json(allBooks);
+router.get("/", async (_, res) => {
+  try {
+    const books = await Books.find().select("-__v");
+    res.json(books);
+  } catch (error) {
+    res.status(500).json(error);
+  }
 });
 
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
-  if (id) {
-    const bookIdx = allBooks.findIndex((book) => book.id === id);
-    if (bookIdx >= 0) {
-      const { data } = await axios.post(`${COUNTER_URL}/counter/${id}/incr`);
+  try {
+    const { id } = req.params;
+    const book = await Books.findById(id).select("-__v");
 
-      res.json({
-        ...allBooks[bookIdx],
-        counterValue: data.value,
-      });
+    if (book?._id) {
+      res.json(book);
     } else {
-      res.status(404);
-      res.json("Book not found");
+      res.status(404).json("Book not found");
     }
-  } else {
-    res.status(404);
-    res.json("Book not found");
+  } catch (error) {
+    res.status(500).json(error);
   }
 });
 
-router.get("/:id/download", (req, res) => {
-  const { id } = req.params;
-  if (id) {
-    const bookIdx = allBooks.findIndex((book) => book.id === id);
-    if (bookIdx >= 0) {
-      if (allBooks[bookIdx].fileBook) {
-        const file = `${allBooks[bookIdx].fileBook}`;
-        res.download(file);
-      } else {
-        res.status(404);
-        res.json("fileBook not found");
-      }
-    } else {
-      res.status(404);
-      res.json("Book not found");
-    }
-  } else {
-    res.status(404);
-    res.json("Book not found");
+router.post("/", async (req, res) => {
+  try {
+    const newBook = new Books({ ...req.body });
+
+    await newBook.save();
+    res.json(newBook);
+  } catch (error) {
+    res.status(500).json(error);
   }
 });
 
-router.post("/", fileMulter.single("fileBook"), (req, res) => {
-  let fileBook = null;
-  if (req.file) {
-    fileBook = req.file.path;
-  }
-  const book = new Book({
-    ...req.body,
-    fileBook,
-  });
-  allBooks.push(book);
-  res.json(book);
-});
-
-router.put("/:id", fileMulter.single("fileBook"), (req, res) => {
-  const { id } = req.params;
-  if (id) {
-    const bookIdx = allBooks.findIndex((book) => book.id === id);
-    if (bookIdx >= 0) {
-      allBooks[bookIdx] = {
-        ...allBooks[bookIdx],
-        ...req.body,
-      };
-
-      if (req.file) {
-        allBooks[bookIdx].fileBook = req.file.path;
-      }
-
-      res.json(allBooks[bookIdx]);
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await Books.findOneAndUpdate({ _id: id }, { ...req.body });
+    if (!result) {
+      res.status(404).json("Book not found");
     } else {
-      res.status(404);
-      res.json("Book not found");
+      res.redirect(`/api/books/${id}`);
     }
-  } else {
-    res.status(404);
-    res.json("Book not found");
+  } catch (error) {
+    res.status(500).json(error);
   }
 });
 
-router.delete("/:id", (req, res) => {
-  const { id } = req.params;
-  if (id) {
-    const bookIdx = allBooks.findIndex((book) => book.id === id);
-    if (bookIdx >= 0) {
-      allBooks.splice(bookIdx, 1);
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-      res.json("ok");
-    } else {
-      res.status(404);
-      res.json("Book not found");
-    }
-  } else {
-    res.status(404);
-    res.json("Book not found");
+    await Books.deleteOne({ _id: id });
+    res.json("ok");
+  } catch (error) {
+    res.status(500).json(error);
   }
 });
 
