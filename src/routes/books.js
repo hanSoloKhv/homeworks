@@ -3,17 +3,25 @@ const router = express.Router();
 const fileMulter = require("../middleware/file");
 const { books: allBooks } = require("../store");
 const Book = require("../models/book");
+const COUNTER_URL = process.env.COUNTER_URL || "http://localhost:81";
+const axios = require("axios");
 
 router.get("/", (req, res) => {
+  console.log("COUNTER_URL", process.env.COUNTER_URL);
   res.json(allBooks);
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
   if (id) {
     const bookIdx = allBooks.findIndex((book) => book.id === id);
     if (bookIdx >= 0) {
-      res.json(allBooks[bookIdx]);
+      const { data } = await axios.post(`${COUNTER_URL}/counter/${id}/incr`);
+
+      res.json({
+        ...allBooks[bookIdx],
+        counterValue: data.value,
+      });
     } else {
       res.status(404);
       res.json("Book not found");
