@@ -1,5 +1,9 @@
 const express = require("express");
+const http = require("http");
+const socketIO = require("socket.io");
 const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
 app.set("view engine", "ejs");
 const booksRouter = require("./routes/books");
 const errorNotFound = require("./middleware/404");
@@ -10,4 +14,10 @@ app.use("/books", booksRouter);
 
 app.use(errorNotFound);
 
-app.listen(3000);
+io.on("connection", (socket) => {
+  socket.on("chat message", (msg) => {
+    io.emit("chat message", msg);
+  });
+});
+
+server.listen(3000);

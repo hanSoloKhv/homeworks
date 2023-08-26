@@ -1,31 +1,69 @@
 <%- include('../partials/layout-start', {title: title}) %>
 
-<h1><%= title %></h1>
+    <h1>
+        <%= title %>
+    </h1>
 
-<div class="row">
-    <div class="col-sm-8">
-        <div class="card">
-            <div class="card-body">
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="card">
+                <div class="card-body">
 
-                <h5 class="card-title"><%= book.title %></h5>
-                <p class="card-text"><%= book.description %></p>
-                <p class="card-text"><%= book.authors %></p>
-                <p class="card-text"><%= book.favorite %></p>
+                    <h5 class="card-title">
+                        <%= book.title %>
+                    </h5>
+                    <p class="card-text">
+                        <%= book.description %>
+                    </p>
+                    <p class="card-text">
+                        <%= book.authors %>
+                    </p>
+                    <p class="card-text">
+                        <%= book.favorite %>
+                    </p>
 
-                <div class="text-right">
-                    <a class="btn btn-sm btn-primary" href="/books/update/<%= book.id %>">
-                        <i class="fa fa-pencil" aria-hidden="true"></i>
-                    </a>
-                    <form action="/books/delete/<%= book.id %>" method="POST" class="d-inline">
-                        <button class="btn btn-sm btn-danger">
-                            <i class="fa fa-trash" aria-hidden="true"></i>
-                        </button>
-                    </form>
+                    <div class="text-right">
+                        <a class="btn btn-sm btn-primary" href="/books/update/<%= book.id %>">
+                            <i class="fa fa-pencil" aria-hidden="true"></i>
+                        </a>
+                        <form action="/books/delete/<%= book.id %>" method="POST" class="d-inline">
+                            <button class="btn btn-sm btn-danger">
+                                <i class="fa fa-trash" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    </div>
+
                 </div>
-
             </div>
         </div>
     </div>
-</div>
 
-<%- include('../partials/layout-end') %>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+        <input id="input" autocomplete="off" /><button>Send</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (input.value) {
+                socket.emit('chat message', input.value);
+                input.value = '';
+            }
+        });
+
+        socket.on('chat message', function (msg) {
+            var item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        })
+    </script>
+
+    <%- include('../partials/layout-end') %>
