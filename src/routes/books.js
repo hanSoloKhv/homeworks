@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const Books = require("../models/book");
+const container = require("../container");
 
 router.get("/", async (_, res) => {
   try {
-    const books = await Books.find().select("-__v");
+    const repo = container.get(BooksRepository);
+    const books = repo.getBooks();
     res.json(books);
   } catch (error) {
     res.status(500).json(error);
@@ -14,8 +15,8 @@ router.get("/", async (_, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const book = await Books.findById(id).select("-__v");
-
+    const repo = container.get(BooksRepository);
+    const book = await repo.getBook(id);
     if (book?._id) {
       res.json(book);
     } else {
@@ -28,7 +29,8 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const newBook = new Books({ ...req.body });
+    const repo = container.get(BooksRepository);
+    const newBook = repo.createBook({ ...req.body });
 
     await newBook.save();
     res.json(newBook);
@@ -40,7 +42,8 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await Books.findOneAndUpdate({ _id: id }, { ...req.body });
+    const repo = container.get(BooksRepository);
+    const result = await repo.updateBook({ _id: id }, { ...req.body });
     if (!result) {
       res.status(404).json("Book not found");
     } else {
@@ -54,8 +57,8 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
-    await Books.deleteOne({ _id: id });
+    const repo = container.get(BooksRepository);
+    await repo.deleteBook({ _id: id });
     res.json("ok");
   } catch (error) {
     res.status(500).json(error);
